@@ -1,36 +1,71 @@
-# Brew & Bean — 現代咖啡館 POS 系統
+# 專題報告
 
-**學號：** [23107142]
+## 1. 名稱
 
-**GitHub 連結：** [https://github.com/Grimtale67/brew-n-bean-project]
+- 專題名稱：Brew & Bean — 咖啡館 POS 點餐系統
+- 學號：（請填寫）
+- GitHub連結：https://github.com/Grimtale67/brew-n-bean-project
+- 網頁連結：https://grimtale67.github.io/brew-n-bean-project/
 
 ---
 
-## 1. 專案目的
+## 2. 目的
 
-Brew & Bean 是一個為小型咖啡館設計的銷售點（POS）網頁應用程式。店員可以瀏覽菜單、建立顧客的訂單、調整數量，並在結帳時產生收據。本專案只使用純 HTML、CSS 與 JavaScript（不使用任何框架，也沒有後端），用來展示陣列、物件、陣列方法、DOM 操作與事件處理等 JavaScript 核心概念。
+咖啡館點餐時，店員需要快速記錄客人點的飲料，並正確算出總金額，如果用手寫或心算，很容易漏記或算錯。本專題使用 HTML、CSS 與 JavaScript，製作一個可以在瀏覽器中操作的點餐系統，讓店員能夠點餐、調整數量、自動計算金額，並在結帳後產生收據、開始下一筆訂單。
 
-## 2. 主要功能
+---
 
-- 依據 `menu` 陣列動態產生商品卡片
-- 商品分類篩選（All、Coffee、Latte、Non-Coffee）
-- 將飲品加入訂單（重複加入同一飲品時，只會增加數量）
-- 在訂單面板中增加、減少數量，或移除品項
-- 清空整筆訂單（清空前會跳出確認視窗）
-- 即時計算小計與總金額（NT$）
-- 結帳並顯示收據視窗（咖啡館名稱、訂單編號、日期時間、品項、數量、單價、總金額）
-- 結帳後可開始新訂單
-- 使用友善的提示訊息（toast）取代瀏覽器內建的 `alert()`
-- 側邊欄可在 POS 與 Menu 頁面之間切換
-- 響應式版面，支援桌機、平板與手機
+## 3. 功能
 
-## 3. 程式流程
+- 開啟網頁後，畫面會顯示 8 種飲料，每張卡片有圖片、名稱、分類、價格與「Add」按鈕。
+- 按上方的分類按鈕（All、Coffee、Latte、Non-Coffee），畫面只會顯示該分類的飲料。
+- 按「Add」，飲料會加入右側的訂單；重複按同一種飲料時，不會多一行，而是數量加 1。
+- 按訂單裡的「+」，該飲料數量加 1；按「−」數量減 1，但數量不會低於 1，低於時會跳出提示訊息。
+- 按「Remove」，該飲料會直接從訂單中移除。
+- 每次訂單改變，品項數量、小計與總金額（NT$）都會立刻自動更新，不需要重新整理網頁。
+- 按「Clear Order」，會先跳出確認視窗，按「Yes, continue」才會清空整筆訂單；如果訂單本來就是空的，會顯示提示訊息。
+- 按「Checkout」，如果訂單是空的，會顯示提示訊息而且不會結帳；如果有資料，會跳出收據（店名、訂單編號、日期時間、品項、數量、單價、總金額），並把訂單清空。
+- 按收據上的「Start New Order」，收據關閉，可以開始下一筆訂單。
+- 按左側選單的「POS」或「Menu」，可以切換頁面；Menu 頁面會用表格列出所有飲料與價格。
 
-### 步驟 1 — 載入頁面並啟動程式
+---
 
-**發生什麼事：** 頁面開啟時，程式會畫出菜單、菜單表格與（空的）訂單，並將所有按鈕綁定事件。
+## 4. 程式運作流程說明
 
-**函式：** `init()`
+程式用兩個陣列記錄資料：`menu` 是菜單，`currentOrder` 是客人點的飲料。畫面上看到的內容，都是根據這兩個陣列畫出來的。
+
+### 步驟 1：建立 `menu` 陣列，存放菜單資料
+
+說明：`menu` 陣列裡的每一筆是一個物件，記錄飲料的編號 (`id`)、名稱 (`name`)、分類 (`category`)、價格 (`price`) 與圖片 (`image`)。這份資料固定不變。
+
+```js
+const menu = [
+  { id: 1, name: "Iced Americano",    category: "Coffee",     price: 80,  image: createDrinkImage("#3b2417", "iced", false) },
+  { id: 2, name: "Hot Americano",     category: "Coffee",     price: 75,  image: createDrinkImage("#3b2417", "hot", false) },
+  { id: 3, name: "Iced Latte",        category: "Latte",      price: 100, image: createDrinkImage("#c49a6c", "iced", false) },
+  { id: 4, name: "Hot Latte",         category: "Latte",      price: 95,  image: createDrinkImage("#c49a6c", "hot", false) },
+  { id: 5, name: "Matcha Latte",      category: "Latte",      price: 110, image: createDrinkImage("#8fae6b", "iced", false) },
+  { id: 6, name: "Chocolate",         category: "Non-Coffee", price: 95,  image: createDrinkImage("#5a3320", "hot", true) },
+  { id: 7, name: "Caramel Macchiato", category: "Coffee",     price: 120, image: createDrinkImage("#d19a4f", "iced", true) },
+  { id: 8, name: "Strawberry Milk",   category: "Non-Coffee", price: 100, image: createDrinkImage("#f4a3b5", "iced", false) }
+];
+```
+
+程式碼說明：用中括號 `[ ]` 建立陣列，大括號 `{ }` 建立物件。`id` 不可重複，之後要靠它辨識是哪一杯飲料。`image` 是由 `createDrinkImage()` 畫出來的飲料圖片，所以圖片不會因為網路問題而壞掉。
+
+### 步驟 2：建立 `currentOrder` 陣列，存放客人點的飲料
+
+說明：`currentOrder` 一開始是空陣列。客人點餐後，會放入像 `{ id: 1, name: "Iced Americano", price: 80, quantity: 2 }` 的物件，其中 `quantity` 是數量。
+
+```js
+let currentOrder = [];
+```
+
+程式碼說明：空陣列代表目前沒有點任何飲料。這裡用 `let` 而不是 `const`，因為清空或移除品項時，會把整個陣列換成新的陣列。
+
+### 步驟 3：頁面載入時啟動程式（`init`）
+
+說明：頁面打開時，程式會畫出菜單、菜單表格與（空的）訂單，並讓所有按鈕可以被點擊。
 
 ```js
 function init() {
@@ -41,15 +76,11 @@ function init() {
 }
 ```
 
-**程式如何運作：** `init()` 依序呼叫其他函式。render 函式會讀取陣列並建立畫面，`setupEventListeners()` 則讓按鈕可以回應點擊。檔案最後一行的 `init();` 負責啟動整個程式。
+程式碼說明：`init()` 依序呼叫四個函式：前三個負責「根據陣列畫畫面」，`setupEventListeners()` 負責讓按鈕有反應。檔案最後一行的 `init();` 會真正啟動它。
 
----
+### 步驟 4：抓取 `menu` 的資料，畫出商品卡片（`renderMenu`）
 
-### 步驟 2 — 顯示並篩選菜單
-
-**發生什麼事：** 程式依據 `menu` 陣列產生商品卡片。如果選了某個分類，就只顯示該分類的飲品。
-
-**函式：** `renderMenu()`
+說明：先判斷目前選的分類。選 All 就顯示全部飲料，否則只留下分類相符的飲料。接著用 `map` 為每種飲料產生一張卡片，內容包含圖片、名稱、分類、價格與「Add」按鈕。按鈕上用 `data-id` 記錄這杯飲料的編號，方便之後知道按的是哪一杯。
 
 ```js
 if (selectedCategory === "All") {
@@ -79,15 +110,11 @@ productGrid.innerHTML = visibleProducts.map(function (product) {
 }).join("");
 ```
 
-**程式如何運作：** `if` 判斷目前選擇的分類。`.filter()` 只保留分類相符的飲品。`.map()` 把每個商品物件轉換成一段 HTML，`.join("")` 再把所有片段合併成一個字串，用 `innerHTML` 放進頁面中。
+程式碼說明：`filter` 會建立一個新陣列，只保留符合條件的飲料；`map` 會把每個飲料物件轉成一段 HTML；`join("")` 把所有 HTML 接成同一個字串，再用 `innerHTML` 放進畫面。反引號裡的 `${ }` 會被換成變數的值。
 
----
+### 步驟 5：偵測分類按鈕，切換分類（`setupEventListeners`）
 
-### 步驟 3 — 使用者點擊分類按鈕
-
-**發生什麼事：** 點擊分類按鈕後，會更新目前選擇的分類並重新畫出商品區。
-
-**函式：** `setupEventListeners()`（分類篩選的監聽器），接著呼叫 `renderCategoryButtons()` 與 `renderMenu()`
+說明：按下分類按鈕後，程式先更新「目前選的分類」，再重新畫出按鈕外觀與商品卡片。
 
 ```js
 categoryFilters.addEventListener("click", function (event) {
@@ -101,99 +128,213 @@ categoryFilters.addEventListener("click", function (event) {
 });
 ```
 
-**程式如何運作：** 只在篩選按鈕的外層容器上放一個監聽器。`event.target.closest()` 會找出實際被點擊的按鈕。程式先更新變數 `selectedCategory`，再依據它重新畫出按鈕與商品區。
+程式碼說明：這裡只在外層容器放一個監聽器（事件委派）。`event.target.closest()` 會找出實際被點的按鈕，如果點到的不是篩選按鈕就用 `return` 結束；`dataset.category` 讀出按鈕上存的分類名稱。
 
----
+### 步驟 6：偵測「Add」按鈕，加入 `currentOrder` 陣列（`addToOrder`）
 
-### 步驟 4 — 使用者將飲品加入訂單
+說明：按下「Add」後，程式用飲料編號到 `menu` 找出這杯飲料，再檢查 `currentOrder` 裡是否已經有它：
 
-**發生什麼事：** 點擊「Add」會把飲品放進訂單。如果該飲品已在訂單中，只會把數量加一，不會產生重複的品項。
+- 已經有：把該筆的數量 `quantity` 加 1（超過 99 時不加，並顯示提示）
+- 還沒有：建立新的物件，數量設為 1，放進 `currentOrder`
 
-**函式：** `addToOrder(productId)`
-
-```js
-const product = menu.find(function (item) {
-  return item.id === productId;
-});
-```
+修改完資料後，呼叫 `renderOrder()` 更新畫面。
 
 ```js
-const existingItem = currentOrder.find(function (item) {
-  return item.id === productId;
-});
+function addToOrder(productId) {
+  // Find the product in the menu array
+  const product = menu.find(function (item) {
+    return item.id === productId;
+  });
 
-if (existingItem) {
-  // Already in the order: increase quantity (but not past the maximum)
-  if (existingItem.quantity >= MAX_QUANTITY) {
-    showToast("Maximum quantity reached for " + product.name + ".", "warning");
+  // Error handling: the product should always exist, but we check anyway
+  if (!product) {
+    showToast("Sorry, that drink could not be found.", "error");
     return;
   }
-  existingItem.quantity += 1;
-} else {
-  // Not in the order yet: create a new order item object
-  currentOrder.push({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    quantity: 1
+
+  // Check whether this drink is already in the order
+  const existingItem = currentOrder.find(function (item) {
+    return item.id === productId;
   });
-}
 
-renderOrder(); // redraw the screen from the updated array
-```
+  if (existingItem) {
+    // Already in the order: increase quantity (but not past the maximum)
+    if (existingItem.quantity >= MAX_QUANTITY) {
+      showToast("Maximum quantity reached for " + product.name + ".", "warning");
+      return;
+    }
+    existingItem.quantity += 1;
+  } else {
+    // Not in the order yet: create a new order item object
+    currentOrder.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1
+    });
+  }
 
-**程式如何運作：** `.find()` 先在 `menu` 中找到該商品，再到 `currentOrder` 中找有沒有相同的商品。如果有，就修改它的 `quantity`；如果沒有，就用 `push` 加入一個新的訂單品項物件。陣列更新完成後，`renderOrder()` 會重新畫出訂單面板。
-
----
-
-### 步驟 5 — 使用者調整數量
-
-**發生什麼事：** 「+」與「−」按鈕可以改變數量，而且數量永遠不會變成 0 或負數。
-
-**函式：** `updateQuantity(productId, change)`
-
-```js
-const newQuantity = item.quantity + change; // the quantity we WOULD get
-
-// Validate: quantity must never be zero or negative
-if (newQuantity < 1) {
-  showToast("Quantity can't go below 1. Use Remove to delete the drink.", "warning");
-  return;
+  renderOrder(); // redraw the screen from the updated array
+  showToast(product.name + " added to order.", "success");
 }
 ```
 
-```js
-item.quantity = newQuantity; // update the array first
-renderOrder();               // then update the screen
-```
+程式碼說明：`find` 找到會回傳該筆資料，找不到回傳 `undefined`，所以後面用 `if (!product)` 擋掉找不到的情況；`push` 把新物件加到陣列最後面；修改完陣列之後才呼叫 `renderOrder()`，確保畫面和資料一致。
 
-**程式如何運作：** 函式先算出「如果修改的話」新的數量，但還沒有真的改動資料。如果結果小於 1，就顯示提示訊息並用 `return` 結束函式。只有合法的數值才會存進陣列，之後再重新畫出畫面。
+### 步驟 7：偵測訂單中的「+」「−」「Remove」按鈕（`setupEventListeners`）
 
----
-
-### 步驟 6 — 使用者移除品項
-
-**發生什麼事：** 「Remove」會把一項飲品從訂單中完全刪除。
-
-**函式：** `removeFromOrder(productId)`
+說明：這三個按鈕都帶有 `data-action`（要做什麼動作）與 `data-id`（對哪一杯做）兩個資訊。程式讀出這兩個值，再依照動作呼叫不同的函式。
 
 ```js
-currentOrder = currentOrder.filter(function (item) {
-  return item.id !== productId;
+orderItems.addEventListener("click", function (event) {
+  const button = event.target.closest("button");
+  if (!button) {
+    return;
+  }
+
+  const productId = Number(button.dataset.id);
+  const action = button.dataset.action;
+
+  // Conditional: decide what to do based on which button was clicked
+  if (action === "increase") {
+    updateQuantity(productId, 1);
+  } else if (action === "decrease") {
+    updateQuantity(productId, -1);
+  } else if (action === "remove") {
+    removeFromOrder(productId);
+  }
 });
-
-renderOrder();
 ```
 
-**程式如何運作：** `.filter()` 會建立一個新陣列，保留除了指定 id 以外的所有品項。這個新陣列會取代原本的 `currentOrder`，然後重新畫出訂單面板。
+程式碼說明：`dataset` 讀出來是字串，要用 `Number()` 轉成數字才能和 `id` 比較；`if / else if` 依照 `action` 的值決定呼叫哪個函式。因為訂單按鈕是每次重新畫出來的，所以監聽器放在外層容器，才不會因為按鈕被重畫而失效。
 
----
+### 步驟 8：修改數量，並檢查數量是否合理（`updateQuantity`）
 
-### 步驟 7 — 使用者清空訂單
+說明：先算出「如果修改的話」新的數量，但還沒有真的改動資料。如果新數量小於 1，或大於上限 99，就顯示提示訊息並結束；只有合理的數值才會存進陣列，然後重新畫出畫面。
 
-**發生什麼事：** 點擊「Clear Order」會先跳出確認視窗，只有按下「Yes, continue」才會真的清空訂單。
+```js
+function updateQuantity(productId, change) {
+  const item = currentOrder.find(function (orderItem) {
+    return orderItem.id === productId;
+  });
 
-**函式：** `clearOrder()` 與 `emptyOrder()`
+  // If the item is not in the order, do nothing
+  if (!item) {
+    return;
+  }
+
+  const newQuantity = item.quantity + change; // the quantity we WOULD get
+
+  // Validate: quantity must never be zero or negative
+  if (newQuantity < 1) {
+    showToast("Quantity can't go below 1. Use Remove to delete the drink.", "warning");
+    return;
+  }
+
+  // Validate: quantity must not be too large
+  if (newQuantity > MAX_QUANTITY) {
+    showToast("Maximum quantity is " + MAX_QUANTITY + ".", "warning");
+    return;
+  }
+
+  item.quantity = newQuantity; // update the array first
+  renderOrder();               // then update the screen
+}
+```
+
+程式碼說明：`change` 是 +1 或 −1；先用 `newQuantity` 暫存結果，驗證通過才寫回 `item.quantity`，這樣數量永遠不會變成 0 或負數。
+
+### 步驟 9：移除單一品項（`removeFromOrder`）
+
+說明：按「Remove」後，把指定的那一筆從 `currentOrder` 中拿掉，再重新畫出畫面。
+
+```js
+function removeFromOrder(productId) {
+  // filter() keeps every item EXCEPT the one we want to remove
+  currentOrder = currentOrder.filter(function (item) {
+    return item.id !== productId;
+  });
+
+  renderOrder();
+  showToast("Item removed.", "info");
+}
+```
+
+程式碼說明：`filter` 會建立新陣列，保留 `id` 和要移除的飲料「不一樣」的所有品項，再用這個新陣列取代原本的 `currentOrder`。
+
+### 步驟 10：抓取 `currentOrder` 的資料，畫出訂單面板（`renderOrder`）
+
+說明：每次都根據最新的 `currentOrder` 重新畫出右側訂單：
+
+- `currentOrder` 是空的：顯示「No drinks yet」的提示
+- `currentOrder` 有資料：每一筆畫出名稱、單價、小計，以及「−」「+」「Remove」按鈕
+
+畫完清單後，也會更新品項數量、小計與總金額。
+
+```js
+function renderOrder() {
+  // Conditional: show an empty message if there is nothing in the order
+  if (currentOrder.length === 0) {
+    orderItems.innerHTML = `
+      <div class="empty-order">
+        <span class="big">🛍️</span>
+        No drinks yet.<br />Tap "Add" on a drink to start an order.
+      </div>
+    `;
+  } else {
+    // Turn each order item object into HTML
+    orderItems.innerHTML = currentOrder.map(function (item) {
+      return `
+        <div class="order-item">
+          <div>
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">${formatCurrency(item.price)} each</div>
+          </div>
+          <div class="item-line-total">${formatCurrency(item.price * item.quantity)}</div>
+          <div class="item-controls">
+            <button class="qty-btn" data-action="decrease" data-id="${item.id}">−</button>
+            <span class="qty-number">${item.quantity}</span>
+            <button class="qty-btn" data-action="increase" data-id="${item.id}">+</button>
+            <button class="remove-btn" data-action="remove" data-id="${item.id}">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Update the item count badge and the totals using the array data
+  const itemCount = calculateItemCount();
+  orderCount.textContent = itemCount + (itemCount === 1 ? " item" : " items");
+
+  const total = calculateTotal();
+  subtotalAmount.textContent = formatCurrency(total);
+  totalAmount.textContent = formatCurrency(total);
+}
+```
+
+程式碼說明：`currentOrder.length === 0` 用來判斷陣列是否為空；每個按鈕都帶有 `data-action` 與 `data-id`，步驟 7 就是靠這兩個值判斷要做什麼；畫面上的數字都是呼叫函式算出來的，不是手動寫死的。
+
+### 步驟 11：計算總金額與品項數量（`calculateTotal`）
+
+說明：用 `reduce` 把 `currentOrder` 裡每一筆的「單價 × 數量」加總。這個函式會在每次 `renderOrder()` 時執行，所以每次訂單改變，總金額都會同步更新。
+
+```js
+function calculateTotal() {
+  // reduce() starts at 0 and adds each item's line total
+  return currentOrder.reduce(function (sum, item) {
+    return sum + item.price * item.quantity;
+  }, 0);
+}
+```
+
+程式碼說明：`reduce` 會把陣列累加成一個值，`sum` 是目前累加的結果，最後的 `0` 是起始值。例如 Iced Americano 80 × 2 加上 Hot Latte 95 × 1，總金額是 255。品項數量由 `calculateItemCount()` 用同樣的方式把所有 `quantity` 加起來。
+
+### 步驟 12：偵測「Clear Order」按鈕，確認後清空訂單（`clearOrder`、`emptyOrder`）
+
+說明：
+
+- `currentOrder` 是空的：顯示提示「The order is already empty.」
+- `currentOrder` 有資料：跳出確認視窗，按「Yes, continue」後才把 `currentOrder` 設回空陣列，並呼叫 `renderOrder()` 更新畫面
 
 ```js
 function clearOrder() {
@@ -208,6 +349,24 @@ function clearOrder() {
 ```
 
 ```js
+function showConfirm(message, onConfirm) {
+  confirmMessage.textContent = message;
+  pendingConfirmAction = onConfirm; // remember what to do on "Yes"
+  openModal(confirmModal);
+}
+```
+
+```js
+confirmYesBtn.addEventListener("click", function () {
+  closeModal(confirmModal);
+  if (pendingConfirmAction) {
+    pendingConfirmAction(); // run the action that was waiting for confirmation
+    pendingConfirmAction = null;
+  }
+});
+```
+
+```js
 function emptyOrder() {
   currentOrder = [];
   renderOrder();
@@ -215,50 +374,11 @@ function emptyOrder() {
 }
 ```
 
-**程式如何運作：** `clearOrder()` 本身不會刪除任何資料，它只是把函式 `emptyOrder` 交給 `showConfirm()` 保存起來。如果使用者按「Yes」，就會執行被保存的函式；如果按「Cancel」，該函式會被捨棄，什麼都不會被刪除。
+程式碼說明：`clearOrder()` 本身不會刪除資料，它把函式 `emptyOrder` 交給 `showConfirm()` 先記起來（存在 `pendingConfirmAction`）。使用者按「Yes」時才執行這個被記住的函式，按「Cancel」就不執行，所以不會誤刪。這裡用自訂的確認視窗，取代瀏覽器的 `confirm`。
 
----
+### 步驟 13：偵測「Checkout」按鈕，結帳並重設訂單（`checkout`）
 
-### 步驟 8 — 計算總金額
-
-**發生什麼事：** 每次訂單變動後，總金額與品項總數都會從陣列重新計算。
-
-**函式：** `calculateTotal()`
-
-```js
-return currentOrder.reduce(function (sum, item) {
-  return sum + item.price * item.quantity;
-}, 0);
-```
-
-**程式如何運作：** `.reduce()` 從 0 開始，逐一走過每個訂單品項，累加「單價 × 數量」。最後回傳的數字會由 `renderOrder()` 透過 `formatCurrency()` 顯示在畫面上。
-
----
-
-### 步驟 9 — 重新畫出訂單面板
-
-**發生什麼事：** 訂單清單、品項數量、小計與總金額，都會依據 `currentOrder` 重新建立。
-
-**函式：** `renderOrder()`
-
-```js
-const itemCount = calculateItemCount();
-orderCount.textContent = itemCount + (itemCount === 1 ? " item" : " items");
-
-const total = calculateTotal();
-subtotalAmount.textContent = formatCurrency(total);
-totalAmount.textContent = formatCurrency(total);
-```
-
-**程式如何運作：** 畫面上顯示的數字從來不是手動輸入的，而是永遠由陣列計算出來，所以畫面與資料不會不一致。
-
----
-
-### 步驟 10 — 使用者結帳
-
-**發生什麼事：** 如果訂單是空的，結帳會被擋下並顯示友善的訊息；否則會建立收據、顯示收據視窗，並重設訂單。
-
-**函式：** `checkout()`
+說明：先檢查訂單是否為空，空的就顯示提示並結束。如果有資料，就把收據需要的資料整理成一個物件，顯示收據視窗，然後把訂單重設為空陣列，並讓訂單編號加 1。
 
 ```js
 if (currentOrder.length === 0) {
@@ -284,15 +404,11 @@ orderCounter += 1;
 renderOrder();
 ```
 
-**程式如何運作：** 程式在重設訂單之前，先把收據資料存成一個物件。`currentOrder = []` 會建立一個新的空陣列，因此收據物件仍然保有舊的品項。訂單編號計數器加一，讓下一筆訂單有新的編號。整段程式放在 `try...catch` 中，萬一發生意外錯誤，會顯示訊息而不是讓程式當掉。
+程式碼說明：收據要在重設訂單「之前」先存好。`currentOrder = []` 是建立一個新的空陣列，收據物件裡的 `items` 仍然指向舊的陣列，所以收據內容不會消失。整段程式放在 `try...catch` 裡，如果發生意外錯誤，會顯示提示訊息而不是讓程式當掉。
 
----
+### 步驟 14：把收據畫出來（`renderReceipt`）
 
-### 步驟 11 — 顯示收據
-
-**發生什麼事：** 收據視窗會顯示咖啡館名稱、訂單編號、日期時間、每項飲品的數量與價格，以及最終總金額。
-
-**函式：** `renderReceipt(receipt)`
+說明：用 `map` 為每一項購買的飲料產生一行收據（名稱、數量 × 單價、小計），再與訂單編號、日期時間、總金額組合，放進收據視窗。
 
 ```js
 const lines = receipt.items.map(function (item) {
@@ -306,15 +422,11 @@ const lines = receipt.items.map(function (item) {
 }).join("");
 ```
 
-**程式如何運作：** `.map()` 為每一項購買的飲品建立一行收據內容。這些內容再與訂單編號、日期與總金額組合起來，放進收據視窗中。咖啡館名稱則寫在 `index.html` 的收據視窗裡。
+程式碼說明：這和步驟 4、步驟 10 一樣，都是「陣列 → `map` → HTML 字串 → `innerHTML`」的做法；咖啡館名稱寫在 `index.html` 的收據視窗裡。
 
----
+### 步驟 15：偵測「Start New Order」按鈕，開始新訂單（`startNewOrder`）
 
-### 步驟 12 — 開始新訂單
-
-**發生什麼事：** 收據視窗關閉，店員可以服務下一位顧客。訂單在結帳時就已經被重設為空的。
-
-**函式：** `startNewOrder()`
+說明：按下後收據視窗關閉。訂單在結帳時就已經重設為空的，所以店員可以直接服務下一位客人。
 
 ```js
 function startNewOrder() {
@@ -323,114 +435,8 @@ function startNewOrder() {
 }
 ```
 
-**程式如何運作：** 視窗是透過加上 CSS class `hidden` 來隱藏的，全程不需要重新整理頁面。
+程式碼說明：視窗是透過加上 CSS class `hidden` 來隱藏的，全程不需要重新整理網頁。
 
----
+### 整體原則
 
-## 4. 本專案如何展示各項必要概念
-
-### 陣列與物件（Arrays and Objects）
-
-- `menu` 是由商品物件組成的陣列，每個物件包含 `id`、`name`、`category`、`price` 與 `image`。
-- `currentOrder` 是由訂單品項物件組成的陣列，每個物件包含 `id`、`name`、`price` 與 `quantity`。
-- 收據同樣是一個物件，包含 `orderNumber`、`dateTime`、`items` 與 `total`。
-
-```js
-const menu = [
-  { id: 1, name: "Iced Americano",    category: "Coffee",     price: 80,  image: createDrinkImage("#3b2417", "iced", false) },
-  { id: 2, name: "Hot Americano",     category: "Coffee",     price: 75,  image: createDrinkImage("#3b2417", "hot", false) },
-```
-
-### 陣列方法（Array Methods）
-
-| 方法 | 使用位置 | 用途 |
-|---|---|---|
-| `.find()` | `addToOrder()`、`updateQuantity()` | 依 id 找出商品或訂單中已存在的品項 |
-| `.filter()` | `renderMenu()`、`removeFromOrder()` | 篩選單一分類的飲品；從訂單中移除某個品項 |
-| `.map()` | `renderMenu()`、`renderOrder()`、`renderReceipt()` | 把物件轉換成 HTML |
-| `.reduce()` | `calculateTotal()`、`calculateItemCount()` | 加總價格與飲品數量 |
-
-### DOM 操作（DOM Manipulation）
-
-- 建立與更新元素：用 `innerHTML` 產生商品卡片、訂單品項與收據；用 `document.createElement()` 建立提示訊息（toast）。
-- 用 `classList.add("hidden")` 與 `classList.remove("hidden")` 顯示或隱藏視窗與頁面。
-
-```js
-function openModal(modalElement) {
-  modalElement.classList.remove("hidden");
-}
-```
-
-### 事件處理（Event Handling）
-
-- `addEventListener("click", ...)` 用於分類篩選、Add 按鈕、數量按鈕、Remove、Clear Order、Checkout、New Order，以及確認視窗的按鈕。
-- Add 按鈕與訂單中的按鈕使用**事件委派（event delegation）**：只在外層容器放一個監聽器，就能處理容器內所有按鈕的點擊。
-
-```js
-clearOrderBtn.addEventListener("click", clearOrder);
-checkoutBtn.addEventListener("click", checkout);
-newOrderBtn.addEventListener("click", startNewOrder);
-```
-
-### 函式（Functions）
-
-每項重要工作都有自己的函式，並在上方寫有用途註解：`renderMenu()`、`renderOrder()`、`addToOrder()`、`updateQuantity()`、`removeFromOrder()`、`clearOrder()`、`calculateTotal()`、`checkout()`、`renderReceipt()`，以及輔助函式如 `formatCurrency()`、`showToast()`、`openModal()`、`closeModal()` 與 `showConfirm()`。
-
-### 條件判斷（Conditional Statements）
-
-- `if (existingItem)` 判斷飲品是否已在訂單中。
-- `if (currentOrder.length === 0)` 判斷訂單是否為空（用於 `checkout()`、`clearOrder()` 與 `renderOrder()`）。
-- `if (newQuantity < 1)` 驗證數量。
-- `if (selectedCategory === "All")` 處理分類選擇。
-- `if / else if` 依按鈕種類決定要增加、減少還是移除。
-
-```js
-if (action === "increase") {
-  updateQuantity(productId, 1);
-} else if (action === "decrease") {
-  updateQuantity(productId, -1);
-} else if (action === "remove") {
-  removeFromOrder(productId);
-}
-```
-
-### 錯誤處理（Error Handling）
-
-- **空訂單：** `checkout()` 會停止執行並顯示友善的訊息。
-- **無效數量：** `updateQuantity()` 不允許數量小於 1 或超過 `MAX_QUANTITY`。
-- **清空訂單的確認：** `showConfirm()` 會在刪除所有品項前先詢問使用者。
-- **意外錯誤：** `checkout()` 中的 `try...catch` 會顯示訊息，而不是讓程式當掉。
-- **找不到商品：** `addToOrder()` 會檢查 `.find()` 是否真的找到商品。
-
-```js
-if (!product) {
-  showToast("Sorry, that drink could not be found.", "error");
-  return;
-}
-```
-
-### 資料同步（Data Synchronization）
-
-陣列是唯一的資料來源（single source of truth）。每個操作都遵循相同的模式：
-
-1. 先修改陣列（`push`、修改 `quantity`、`filter`，或重設為 `[]`）。
-2. 呼叫 render 函式（`renderOrder()` 或 `renderMenu()`）。
-3. 畫面依據陣列重新建立。
-
-總金額從來不會直接在畫面上修改，而是永遠由 `calculateTotal()` 從 `currentOrder` 重新計算，因此畫面永遠與資料一致，頁面也完全不需要重新整理。
-
-```js
-item.quantity = newQuantity; // update the array first
-renderOrder();               // then update the screen
-```
-
----
-
-## 5. 檔案說明
-
-| 檔案 | 用途 |
-|---|---|
-| `index.html` | 頁面結構：側邊欄、商品區、訂單面板、視窗 |
-| `style.css` | 外觀設計：色彩、版面、卡片、視窗與響應式規則 |
-| `app.js` | 所有程式邏輯：資料、畫面渲染、訂單管理、結帳 |
-| `report.md` | 本報告 |
+步驟 6、8、9、12、13 都遵守同一個原則：**先修改陣列，再根據陣列重新畫出畫面。** 這樣畫面上的內容一定和資料一致，網頁也不需要重新整理。
