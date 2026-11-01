@@ -1,8 +1,8 @@
 # Brew & Bean — 現代咖啡館 POS 系統
 
-**學號：** [I WILL FILL THIS IN]
+**學號：** [23107142]
 
-**GitHub 連結：** [I WILL FILL THIS IN]
+**GitHub 連結：** [https://github.com/Grimtale67/brew-n-bean-project]
 
 ---
 
